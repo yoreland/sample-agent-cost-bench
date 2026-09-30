@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coding CLI 天梯</title>
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --line: #30363d; --text: #e6edf3; --muted: #8b949e;
+    --kiro: #8b5cf6; --claude-code: #f97316; --codex: #10b981;
+    --gold: #fbbf24; --silver: #cbd5e1; --bronze: #d97706;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; color: var(--muted); font-size: 13px; }
+  .tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+  .tabs button { background: transparent; color: var(--muted); border: 0; padding: 8px 18px; font-size: 14px; cursor: pointer; }
+  .tabs button.on { background: #21262d; color: var(--text); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 20px; }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; }
+  .card h2 { margin: 0; font-size: 19px; }
+  .card .hint { color: var(--muted); font-size: 13px; margin: 2px 0 18px; }
+  .row { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; margin-bottom: 16px; }
+  .rank { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+          font-weight: 800; font-size: 16px; color: #111; }
+  .r1 { background: var(--gold); } .r2 { background: var(--silver); } .r3 { background: var(--bronze); }
+  .rn { background: #30363d; color: var(--text); }
+  .name { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 5px; }
+  .name b { font-size: 15px; }
+  .name .model { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .val { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+  .bar { height: 12px; background: #0d1117; border-radius: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 6px; transition: width .5s ease; }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .x { color: var(--text); }
+  details { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 6px; border-bottom: 1px solid #21262d; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; }
+  td.best { color: var(--gold); font-weight: 700; }
+  .tag { font-size: 11px; padding: 0 6px; border-radius: 4px; background: #21262d; color: var(--muted); margin-left: 4px; }
+  .notes { margin-top: 26px; color: var(--muted); font-size: 13px; }
+  .notes li { margin-bottom: 4px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">Coding CLI 天梯</h1>
+  <p class="sub" id="sub"></p>
+  <div class="chips" id="chips"></div>
+
+  <div class="tabs" id="tabs">
+    <button data-tier="all" class="on">全部任务</button>
+    <button data-tier="easy">简单任务</button>
+    <button data-tier="hard">困难任务</button>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>💰 成本天梯</h2>
+      <p class="hint">平均每次运行花费（USD），越低越好</p>
+      <div id="cost"></div>
+      <details><summary>按任务展开</summary><div id="cost-t"></div></details>
+    </section>
+    <section class="card">
+      <h2>⚡ 速度天梯</h2>
+      <p class="hint">平均每次运行的 Agent 执行耗时（不含评测打分时间），越低越好</p>
+      <div id="speed"></div>
+      <details><summary>按任务展开</summary><div id="speed-t"></div></details>
+    </section>
+  </div>
+
+  <ul class="notes" id="notes"></ul>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const COLORS = { kiro: "var(--kiro)", "claude-code": "var(--claude-code)", codex: "var(--codex)" };
+const fmtUsd = v => v == null ? "—" : "$" + v.toFixed(v < 0.1 ? 3 : 2);
+const fmtSec = v => v == null ? "—" : (v >= 60 ? (v / 60).toFixed(1) + " min" : v.toFixed(0) + " s");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const modelOf = t => (t.match(/\(([^)]*)\)/) || [, ""])[1];
+
+function aggregate(runs) {
+  const by = {};
+  for (const r of runs) {
+    const g = by[r.target] ||= { target: r.target, cli: r.cli, key: r.key, model: modelOf(r.target),
+                                 note: r.cost_note, n: 0, pass: 0, cost: [], sec: [] };
+    g.n++; if (r.passed) g.pass++;
+    if (r.cost_usd != null) g.cost.push(r.cost_usd);
+    if (r.seconds != null) g.sec.push(r.seconds);
+  }
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  return Object.values(by).map(g => ({ ...g, avgCost: avg(g.cost), avgSec: avg(g.sec),
+                                        totCost: g.cost.reduce((x, y) => x + y, 0) }));
+}
+
+function ladder(el, rows, field, fmt, extra) {
+  rows = rows.filter(r => r[field] != null).sort((a, b) => a[field] - b[field]);
+  const max = Math.max(...rows.map(r => r[field]));
+  const best = rows[0] && rows[0][field];
+  el.innerHTML = rows.map((r, i) => {
+    const cls = i < 3 ? "r" + (i + 1) : "rn";
+    const ratio = best ? r[field] / best : 1;
+    return `<div class="row">
+      <div class="rank ${cls}">${i + 1}</div>
+      <div>
+        <div class="name"><span><b>${esc(r.cli)}</b><span class="model">${esc(r.model)}</span></span>
+          <span class="val">${fmt(r[field])}</span></div>
+        <div class="bar"><i style="width:${(r[field] / max * 100).toFixed(1)}%;background:${COLORS[r.key] || "#58a6ff"}"></i></div>
+        <div class="meta"><span>通过 ${r.pass}/${r.n}</span>
+          ${i ? `<span>是第 1 名的 <span class="x">${ratio.toFixed(1)}×</span></span>` : "<span>🏆 最优</span>"}
+          ${extra(r)}</div>
+      </div></div>`;
+  }).join("");
+}
+
+function taskTable(el, runs, field, fmt) {
+  const targets = [...new Set(runs.map(r => r.target))];
+  const tasks = [...new Set(runs.map(r => r.task))];
+  const cell = (t, g) => runs.filter(r => r.task === t && r.target === g).map(r => r[field]);
+  let h = `<table><tr><th>任务</th>${targets.map(g => `<th><span class="dot" style="background:${
+    COLORS[runs.find(r => r.target === g).key]}"></span>${esc(runs.find(r => r.target === g).cli)}</th>`).join("")}</tr>`;
+  for (const t of tasks) {
+    const vals = targets.map(g => { const v = cell(t, g); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; });
+    const min = Math.min(...vals.filter(v => v != null));
+    const tier = runs.find(r => r.task === t).tier;
+    h += `<tr><td>${esc(t)}${tier === "hard" ? '<span class="tag">难</span>' : ""}</td>${
+      vals.map(v => `<td class="${v === min ? "best" : ""}">${fmt(v)}</td>`).join("")}</tr>`;
+  }
+  el.innerHTML = h + "</table>";
+}
+
+function render(tier) {
+  const runs = DATA.runs.filter(r => tier === "all" || r.tier === tier);
+  const agg = aggregate(runs);
+  ladder(document.getElementById("cost"), agg, "avgCost", fmtUsd,
+         r => `<span>合计 ${fmtUsd(r.totCost)}</span>`);
+  ladder(document.getElementById("speed"), agg, "avgSec", fmtSec, () => "");
+  taskTable(document.getElementById("cost-t"), runs, "cost_usd", fmtUsd);
+  taskTable(document.getElementById("speed-t"), runs, "seconds", fmtSec);
+}
+
+(function init() {
+  const tasks = [...new Set(DATA.runs.map(r => r.task))];
+  const targets = [...new Set(DATA.runs.map(r => r.target))];
+  const passed = DATA.runs.filter(r => r.passed).length;
+  document.getElementById("title").textContent = DATA.title;
+  document.getElementById("sub").textContent =
+    `同一批编码任务，由不同 CLI 独立完成，并用 pytest / LLM 评分验证。测试日期 ${DATA.run_date}。`;
+  document.getElementById("chips").innerHTML = [
+    `${targets.length} 个 CLI`, `${tasks.length} 个任务`, `${DATA.runs.length} 次运行`,
+    `通过率 ${Math.round(passed / DATA.runs.length * 100)}%`, "每任务 1 次重复",
+  ].map(s => `<span class="chip">${s}</span>`).join("");
+
+  const notes = [...new Map(DATA.runs.map(r => [r.cli, r.cost_note])).entries()]
+    .map(([c, n]) => `<li><b>${esc(c)}</b> 成本口径：${esc(n)}</li>`);
+  notes.push("<li>所有 CLI 本次在质量上均 100% 通过，因此天梯只比较成本与速度；任务偏少且每项只跑 1 次，结论仅供参考。</li>");
+  notes.push("<li>Kiro 与 Claude Code 均使用 Sonnet 4.6；Codex 使用 Amazon Bedrock 上的 GPT-5.5（us-east-1）。</li>");
+  notes.push('<li>数据由 <a style="color:#58a6ff" href="https://github.com/aws-samples/sample-agent-cost-bench">agent-cost-bench</a> 生成，原始聚合数据见 <a style="color:#58a6ff" href="data.json">data.json</a>。</li>');
+  document.getElementById("notes").innerHTML = notes.join("");
+
+  document.getElementById("tabs").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b));
+    render(b.dataset.tier);
+  });
+  render("all");
+})();
+</script>
+</body>
+</html>
