@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Build a static leaderboard page (index.html + data.json) from
-agent-cost-bench result JSON files.
+agent-cost-bench result JSON files. Each entry is one CLI × model combination.
 
 Usage: build.py OUT_DIR results1.json [results2.json ...]
 
+Target display names are expected as "<Tool> · <Model>" (e.g. "Kiro · auto").
 Only aggregate numbers are published (no transcripts, prompts or stdout).
 """
 from __future__ import annotations
@@ -14,19 +15,19 @@ from pathlib import Path
 
 HARD_TASKS = {"multitenant-rbac-api", "event-sourcing-cqrs"}
 
-# Short CLI key + how its cost figure was obtained (shown as a footnote badge).
-CLI_META = {
-    "Kiro": ("kiro", "按 credits × $0.04/credit 换算（假设值）"),
-    "Claude Code": ("claude-code", "CLI 直接上报的 Bedrock 实际花费"),
-    "Codex": ("codex", "按 token × OpenAI 官网 GPT-5.5 单价估算"),
+TOOLS = {
+    "Kiro": dict(key="kiro", cost_note="credits × $0.04/credit 换算（每 credit 单价为假设值，取决于套餐）"),
+    "Claude Code": dict(key="claude-code", cost_note="Claude Code 自报的 total_cost_usd（Bedrock 调用，按 CLI 内置价目计算）"),
+    "Codex": dict(key="codex", cost_note="token 数 × OpenAI 官网标准价估算（经 Bedrock 调用，实际账单可能不同）"),
+}
+MODEL_NOTES = {
+    ("Kiro", "auto"): "≈ Opus 4.8",
 }
 
 
-def cli_of(target: str) -> tuple[str, str, str]:
-    for name, (key, note) in CLI_META.items():
-        if target.startswith(name):
-            return name, key, note
-    return target, target.lower(), ""
+def split_target(target: str) -> tuple[str, str]:
+    tool, _, model = target.partition(" · ")
+    return tool.strip(), model.strip() or target
 
 
 def main() -> None:
@@ -38,31 +39,33 @@ def main() -> None:
         started.append(d["started_at"])
         for r in d["results"]:
             u = r.get("usage") or {}
-            name, key, note = cli_of(r["target"])
+            tool, model = split_target(r["target"])
+            meta = TOOLS.get(tool, dict(key=tool.lower(), cost_note=""))
             # Agent time = CLI phase durations only (excludes pytest / judge
             # grading time that the harness adds to the wall clock).
-            phases = [p.get("duration_seconds") for p in r.get("phase_results") or []
-                      if p.get("duration_seconds") is not None]
+            phases = [ph.get("duration_seconds") for ph in r.get("phase_results") or []
+                      if ph.get("duration_seconds") is not None]
             agent_s = sum(phases) if phases else (u.get("wall_clock_seconds") or r.get("duration_seconds"))
             runs.append({
                 "task": r["task_id"],
                 "tier": "hard" if r["task_id"] in HARD_TASKS else "easy",
                 "target": r["target"],
-                "cli": name,
-                "key": key,
-                "cost_note": note,
+                "tool": tool,
+                "model": model,
+                "model_note": MODEL_NOTES.get((tool, model), ""),
+                "key": meta["key"],
                 "passed": r["status"] == "passed",
                 "score": (r.get("scores") or {}).get("final"),
                 "cost_usd": u.get("cost_usd"),
                 "credits": u.get("raw_credits"),
                 "seconds": agent_s,
-                "input_tokens": u.get("input_tokens"),
-                "output_tokens": u.get("output_tokens"),
+                "reverified": bool(r.get("reverified")),
             })
     data = {
-        "title": "Coding CLI 天梯：Kiro vs Claude Code vs Codex",
+        "title": "Coding CLI × 模型 天梯",
         "generated_from": run_ids,
         "run_date": min(started)[:10],
+        "tool_notes": {k: v["cost_note"] for k, v in TOOLS.items()},
         "runs": runs,
     }
     out.mkdir(parents=True, exist_ok=True)

@@ -8,26 +8,36 @@ out.mkdir(parents=True, exist_ok=True)
 errors = []
 with sync_playwright() as p:
     b = p.chromium.launch(args=["--no-sandbox"])
-    for name, vp in (("desktop", (1200, 900)), ("mobile", (390, 844))):
+    for name, vp in (("desktop", (1280, 900)), ("mobile", (390, 844))):
         pg = b.new_page(viewport={"width": vp[0], "height": vp[1]})
         pg.on("pageerror", lambda e: errors.append(f"pageerror: {e}"))
         pg.on("console", lambda m: m.type == "error" and errors.append(f"console: {m.text}"))
         pg.goto(url, wait_until="networkidle")
         if name == "desktop":
             for tier in ("all", "easy", "hard"):
-                pg.click(f'#tabs button[data-tier="{tier}"]')
-                pg.wait_for_timeout(600)
+                pg.click(f'#tiers button[data-tier="{tier}"]')
+                pg.wait_for_timeout(500)
                 for board in ("cost", "speed"):
                     rows = pg.locator(f"#{board} .row").all_inner_texts()
-                    print(f"[{tier}] {board}:", [" ".join(r.split()) for r in rows])
+                    print(f"[{tier}] {board}: {len(rows)} rows")
+                    for r in rows:
+                        print("    ", " ".join(r.split()))
                 pg.screenshot(path=str(out / f"leaderboard-{tier}.png"), full_page=True)
-            pg.click('#tabs button[data-tier="all"]')
-            pg.locator("details").nth(0).evaluate("d => d.open = true")
-            pg.locator("details").nth(1).evaluate("d => d.open = true")
+            # tool filter: uncheck Codex -> ladders must drop its rows
+            pg.click('#tiers button[data-tier="all"]')
+            before = pg.locator("#cost .row").count()
+            pg.uncheck('#tools input[value="Codex"]')
+            pg.wait_for_timeout(300)
+            after = pg.locator("#cost .row").count()
+            print(f"tool filter: {before} -> {after} rows after unchecking Codex")
+            if after >= before:
+                errors.append("tool filter did not remove rows")
+            pg.check('#tools input[value="Codex"]')
+            pg.evaluate("document.querySelectorAll('details').forEach(d => d.open = true)")
             pg.wait_for_timeout(300)
             pg.screenshot(path=str(out / "leaderboard-expanded.png"), full_page=True)
         else:
-            pg.wait_for_timeout(600)
+            pg.wait_for_timeout(500)
             pg.screenshot(path=str(out / "leaderboard-mobile.png"), full_page=True)
     b.close()
 print("errors:", errors or "none")
