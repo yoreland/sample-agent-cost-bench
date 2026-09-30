@@ -31,7 +31,7 @@ for slug, model, label in [
     ("kiro-gpt-5-6-sol", "gpt-5.6-sol", "Kiro · GPT-5.6 Sol"),
 ]:
     runners.append(dict(name=slug, display_name=label, cli_path="kiro-cli", model_id=model,
-                        pricing=dict(usd_per_credit=0.04), cli_base_args=KIRO_ARGS))
+                        pricing=dict(usd_per_credit=0.02), cli_base_args=KIRO_ARGS))
 for slug, model, label in [
     ("cc-opus-5-5", "us.anthropic.claude-opus-5-5", "Claude Code · Opus 5.5"),
     ("cc-sonnet-5-5", "global.anthropic.claude-sonnet-5-5", "Claude Code · Sonnet 5.5"),

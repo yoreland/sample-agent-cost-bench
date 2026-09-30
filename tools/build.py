@@ -13,10 +13,12 @@ import json
 import sys
 from pathlib import Path
 
+KIRO_USD_PER_CREDIT = 0.02  # assumed rate; Kiro cost is recomputed from raw credits
+
 HARD_TASKS = {"multitenant-rbac-api", "event-sourcing-cqrs"}
 
 TOOLS = {
-    "Kiro": dict(key="kiro", cost_note="credits × $0.04/credit 换算（每 credit 单价为假设值，取决于套餐）"),
+    "Kiro": dict(key="kiro", cost_note="credits × $0.02/credit 换算（每 credit 单价为假设值，实际取决于套餐）"),
     "Claude Code": dict(key="claude-code", cost_note="Claude Code 自报的 total_cost_usd（Bedrock 调用，按 CLI 内置价目计算）"),
     "Codex": dict(key="codex", cost_note="token 数 × OpenAI 官网标准价估算（经 Bedrock 调用，实际账单可能不同）"),
 }
@@ -46,6 +48,9 @@ def main() -> None:
             phases = [ph.get("duration_seconds") for ph in r.get("phase_results") or []
                       if ph.get("duration_seconds") is not None]
             agent_s = sum(phases) if phases else (u.get("wall_clock_seconds") or r.get("duration_seconds"))
+            cost = u.get("cost_usd")
+            if tool == "Kiro" and u.get("raw_credits") is not None:
+                cost = u["raw_credits"] * KIRO_USD_PER_CREDIT
             runs.append({
                 "task": r["task_id"],
                 "tier": "hard" if r["task_id"] in HARD_TASKS else "easy",
@@ -56,7 +61,7 @@ def main() -> None:
                 "key": meta["key"],
                 "passed": r["status"] == "passed",
                 "score": (r.get("scores") or {}).get("final"),
-                "cost_usd": u.get("cost_usd"),
+                "cost_usd": cost,
                 "credits": u.get("raw_credits"),
                 "seconds": agent_s,
                 "reverified": bool(r.get("reverified")),

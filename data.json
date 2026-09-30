@@ -7,7 +7,7 @@
  ],
  "run_date": "2026-09-30",
  "tool_notes": {
-  "Kiro": "credits × $0.04/credit 换算（每 credit 单价为假设值，取决于套餐）",
+  "Kiro": "credits × $0.02/credit 换算（每 credit 单价为假设值，实际取决于套餐）",
   "Claude Code": "Claude Code 自报的 total_cost_usd（Bedrock 调用，按 CLI 内置价目计算）",
   "Codex": "token 数 × OpenAI 官网标准价估算（经 Bedrock 调用，实际账单可能不同）"
  },
@@ -67,7 +67,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.022603986693200663,
+   "cost_usd": 0.011301993346600332,
    "credits": 0.5650996673300166,
    "seconds": 34.90566937099902,
    "reverified": true
@@ -112,7 +112,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.06006785358540631,
+   "cost_usd": 0.030033926792703156,
    "credits": 1.5016963396351577,
    "seconds": 44.80600279999999,
    "reverified": true
@@ -127,7 +127,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.020250871973466006,
+   "cost_usd": 0.010125435986733003,
    "credits": 0.5062717993366501,
    "seconds": 35.040139234999515,
    "reverified": false
@@ -142,7 +142,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.05001778429187396,
+   "cost_usd": 0.02500889214593698,
    "credits": 1.250444607296849,
    "seconds": 38.66469292399961,
    "reverified": false
@@ -157,7 +157,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.07901469079668327,
+   "cost_usd": 0.03950734539834164,
    "credits": 1.9753672699170817,
    "seconds": 61.72899939600029,
    "reverified": true
@@ -187,7 +187,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.19700523174262022,
+   "cost_usd": 0.09850261587131011,
    "credits": 4.925130793565505,
    "seconds": 79.31384414700005,
    "reverified": true
@@ -232,7 +232,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.07691765173067994,
+   "cost_usd": 0.03845882586533997,
    "credits": 1.9229412932669985,
    "seconds": 63.85382421400027,
    "reverified": false
@@ -247,7 +247,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.18697467225737976,
+   "cost_usd": 0.09348733612868988,
    "credits": 4.674366806434494,
    "seconds": 56.77482438699917,
    "reverified": false
@@ -292,7 +292,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.06260456770812603,
+   "cost_usd": 0.031302283854063015,
    "credits": 1.5651141927031509,
    "seconds": 42.41005767800016,
    "reverified": true
@@ -307,7 +307,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.035321780218905474,
+   "cost_usd": 0.017660890109452737,
    "credits": 0.8830445054726368,
    "seconds": 48.89657962399906,
    "reverified": true
@@ -382,7 +382,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.20239380199801,
+   "cost_usd": 0.101196900999005,
    "credits": 5.059845049950249,
    "seconds": 59.145771591000084,
    "reverified": true
@@ -412,7 +412,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.21824188966500832,
+   "cost_usd": 0.10912094483250416,
    "credits": 5.456047241625208,
    "seconds": 142.66861046799932,
    "reverified": true
@@ -457,7 +457,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.12389164886898836,
+   "cost_usd": 0.06194582443449418,
    "credits": 3.097291221724709,
    "seconds": 179.7824915379988,
    "reverified": true
@@ -487,7 +487,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.26902797828192376,
+   "cost_usd": 0.13451398914096188,
    "credits": 6.725699457048093,
    "seconds": 217.03041796699836,
    "reverified": true
@@ -517,7 +517,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.8411141258374794,
+   "cost_usd": 0.4205570629187397,
    "credits": 21.027853145936984,
    "seconds": 314.7113656099991,
    "reverified": true
@@ -547,7 +547,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.789539464937977,
+   "cost_usd": 0.3947697324689885,
    "credits": 19.738486623449425,
    "seconds": 501.45842940500006,
    "reverified": true
@@ -562,7 +562,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.12927660795356552,
+   "cost_usd": 0.06463830397678276,
    "credits": 3.231915198839138,
    "seconds": 189.63495926999894,
    "reverified": true
@@ -607,7 +607,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.6473483026361525,
+   "cost_usd": 0.32367415131807625,
    "credits": 16.183707565903813,
    "seconds": 251.21776545699868,
    "reverified": true
@@ -652,7 +652,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.4000447556749586,
+   "cost_usd": 0.2000223778374793,
    "credits": 10.001118891873965,
    "seconds": 332.34454006600026,
    "reverified": true
@@ -682,7 +682,7 @@
    "key": "kiro",
    "passed": true,
    "score": 1.0,
-   "cost_usd": 0.804459454285904,
+   "cost_usd": 0.402229727142952,
    "credits": 20.1114863571476,
    "seconds": 567.4413461820004,
    "reverified": true
